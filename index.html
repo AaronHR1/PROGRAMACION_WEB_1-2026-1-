@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Biblioteca de Videojuegos</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+</head>
+
+<body>
+  <h2>Los mejores videojuegos</h2>
+
+  <table id="miTabla" class="display">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Estudio</th>
+        <th>Genero</th>
+        <th>Año</th>
+        <th>Más información</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, getDocs }
+      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyDL6rQZ26lv8-HEXlVJaW8Xwc42FCKxgkA",
+      authDomain: "bibliotecavideojuegos-9ff72.firebaseapp.com",
+      projectId: "bibliotecavideojuegos-9ff72",
+      storageBucket: "bibliotecavideojuegos-9ff72.firebasestorage.app",
+      messagingSenderId: "405804750018",
+      appId: "1:405804750018:web:2af7fea6bd66e3b54b175b",
+      measurementId: "G-333PHWPRED"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+   
+    const coleccion = collection(db, "mibd");
+
+    let tabla;
+
+    $(document).ready(() => {
+
+      
+      tabla = $('#miTabla').DataTable({
+        data: [],
+        columns: [
+          { data: 'nombre' },
+          { data: 'estudio' },
+          { data: 'genero' },
+          { data: 'anio' },
+          {
+            data: null,
+            render: row => `
+              <button class="btnMasInfo" data-id="${row.id}">
+                Más información
+              </button>
+            `
+          }
+        ],
+        language: {
+          url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+        }
+      });
+
+      
+      cargarDatos();
+
+      async function cargarDatos() {
+        const snapshot = await getDocs(coleccion);
+
+        const datos = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        tabla.clear();
+        tabla.rows.add(datos);
+        tabla.draw();
+      }
+    });
+
+  </script>
+
+</body>
+</html>
