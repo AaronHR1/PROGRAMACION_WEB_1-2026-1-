@@ -1,100 +1,176 @@
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>Biblioteca de Videojuegos</title>
 
+  <!-- MATERIALIZE CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+
+  <!-- ICONOS GOOGLE -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- DATATABLES -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
-  <style>
-    /* ===== MODAL ===== */
-    #modalFondo {
-      display: none;
-      position: fixed;
-      z-index: 9999;
-      left: 0; top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.7);
-      justify-content: center;
-      align-items: center;
-    }
+ <style>
 
-    #modalContenido {
-      background: white;
-      width: 600px;
-      padding: 20px;
-      border-radius: 10px;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
+/* ========= FONDO DE PANTALLA COMPLETO ========= */
+body {
+    background:
+      linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 30, 0.85)),
+      url("https://images6.alphacoders.com/135/thumb-1920-1350907.png");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* Mantiene el fondo fijo */
+    color: #e0e0e0 !important;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
 
-    #modalContenido img {
-      width: 100%;
-      border-radius: 10px;
-      margin-bottom: 15px;
-    }
+/* Título */
+h3 {
+  color: #64b5f6;
+  text-shadow: 0px 0px 6px black;
+}
 
-    #btnCerrarModal {
-      float: right;
-      cursor: pointer;
-      background: red;
-      color: white;
-      padding: 5px 10px;
-      border: none;
-      border-radius: 5px;
-    }
+/* ========= TABLA ========= */
+table {
+  background-color: rgba(20, 20, 25, 0.8) !important;
+  color: white !important;
+  border-radius: 8px;
+  overflow: hidden;
+}
 
-    .modalTitulo {
-      font-size: 22px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-  </style>
+table thead {
+  background: rgba(0, 50, 120, 0.9) !important;
+  color: white !important;
+}
+
+table tbody tr:hover {
+  background-color: rgba(50, 100, 255, 0.3) !important;
+}
+
+/* Filas de DataTable */
+table.striped > tbody > tr:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+table.striped > tbody > tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ========= DATATABLES OSCURO ========= */
+.dataTables_wrapper .dataTables_filter input {
+  background: rgba(30, 30, 30, 0.8);
+  color: white;
+  border: 1px solid #0d47a1;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  background: rgba(25, 25, 25, 0.8) !important;
+  color: white !important;
+  border: 1px solid #0d47a1 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: #0d47a1 !important;
+  color: white !important;
+}
+
+/* ========= BOTONES ========= */
+.btn,
+.btn-small,
+.modal-close {
+  background: #1565c0 !important;
+}
+
+.btn:hover,
+.btn-small:hover,
+.modal-close:hover {
+  background: #1e88e5 !important;
+}
+
+/* ========= MODAL ========= */
+.modal {
+  background: rgba(20, 20, 25, 0.95) !important;
+  color: white !important;
+  border-radius: 10px;
+}
+
+.modal-footer {
+  background: rgba(10, 10, 15, 0.95) !important;
+}
+
+.modal img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+</style>
+
 </head>
 
 <body>
-  <h2>Biblioteca de videojuegos</h2>
-  
-  <table id="miTabla" class="display">
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Estudio</th>
-        <th>Genero</th>
-        <th>Año</th>
-        <th>Más información</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
 
-  <!-- ===== MODAL POPUP ===== -->
-  <div id="modalFondo">
-    <div id="modalContenido">
-      <button id="btnCerrarModal">Cerrar</button>
+  <div class="container catalogo-fondo">
+    <h3 class="center-align">Biblioteca de Videojuegos</h3>
+
+    <!-- TABLA -->
+    <table id="miTabla" class="striped highlight centered">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Estudio</th>
+          <th>Género</th>
+          <th>Año</th>
+          <th>Más información</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="center-align" style="margin-top: 20px;">
+      <a href="crud.html" class="btn">
+        <i class="material-icons left">edit</i>
+        MODIFICAR REGISTROS
+      </a>
+    </div>
+  </div>
+
+  <!-- MODAL MATERIALIZE -->
+  <div id="modalJuego" class="modal">
+    <div class="modal-content">
+      <h4 id="modalNombre"></h4>
       <img id="modalImg">
-      <div class="modalTitulo" id="modalNombre"></div>
-
       <p><b>Estudio:</b> <span id="modalEstudio"></span></p>
       <p><b>Género:</b> <span id="modalGenero"></span></p>
       <p><b>Año:</b> <span id="modalAnio"></span></p>
       <p><b>Puntuación:</b> <span id="modalPuntuacion"></span>/10</p>
       <p><b>Plataformas:</b> <span id="modalPlataformas"></span></p>
-      <p><b>Resumen:</b></p>
+      <h5>Resumen</h5>
       <p id="modalResumen"></p>
 
-      <a id="modalGameplay" target="_blank">
-        <button style="margin-top: 10px;">Ver Gameplay</button>
+      <a id="modalGameplay" target="_blank" class="btn red">
+        <i class="material-icons left">ondemand_video</i>
+        Ver Gameplay
       </a>
+    </div>
+
+    <div class="modal-footer">
+      <a class="modal-close waves-effect btn-flat">Cerrar</a>
     </div>
   </div>
 
 
-  <!-- ===== LIBRERÍAS ===== -->
+  <!-- LIBRERÍAS -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-  <!-- ===== FIREBASE + TABLA ===== -->
+  <!-- MATERIALIZE JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <!-- FIREBASE + JS -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getFirestore, collection, getDocs }
@@ -118,6 +194,8 @@
 
     $(document).ready(() => {
 
+      M.Modal.init(document.querySelectorAll('.modal'));
+
       tabla = $('#miTabla').DataTable({
         data: [],
         columns: [
@@ -128,8 +206,8 @@
           {
             data: null,
             render: row => `
-              <button class="btnMasInfo" data-id="${row.id}">
-                Más información
+              <button class="btn-small btnMasInfo" data-id="${row.id}">
+                Ver más
               </button>
             `
           }
@@ -149,7 +227,6 @@
         tabla.rows.add(datos).draw();
       }
 
-      // ===== EVENTO CLICK "Más información" =====
       $('#miTabla tbody').on("click", ".btnMasInfo", function () {
         const data = tabla.row($(this).parents("tr")).data();
         mostrarModal(data);
@@ -157,8 +234,6 @@
 
     });
 
-
-    // ===== FUNCIÓN PARA MOSTRAR MODAL =====
     function mostrarModal(data) {
       document.getElementById("modalImg").src = data.imagen;
       document.getElementById("modalNombre").innerText = data.nombre;
@@ -170,17 +245,11 @@
       document.getElementById("modalResumen").innerText = data.resumen;
       document.getElementById("modalGameplay").href = data.gameplay;
 
-      document.getElementById("modalFondo").style.display = "flex";
+      const modal = M.Modal.getInstance(document.getElementById("modalJuego"));
+      modal.open();
     }
 
-    // ===== CERRAR MODAL =====
-    document.getElementById("btnCerrarModal").onclick = () => {
-      document.getElementById("modalFondo").style.display = "none";
-    };
   </script>
-  <button onclick="window.location.href='crud.html'" 
-        style="margin-top:20px; padding:10px 20px; font-size:16px;">
-        MODIFICAR REGISTROS
-  </button>
+
 </body>
 </html>
