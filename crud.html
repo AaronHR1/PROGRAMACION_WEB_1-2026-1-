@@ -10,6 +10,22 @@
 <body>
     <h1>CRUD de Videojuegos</h1>
 
+    <!-- ========== TOAST ========== -->
+    <div id="toast" style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        background: #4CAF50;
+        color: white;
+        border-radius: 6px;
+        font-size: 16px;
+        display: none;
+        box-shadow: 0px 2px 6px rgba(0,0,0,0.3);
+        z-index: 9999;">
+        Mensaje
+    </div>
+
     <!-- ========== FORMULARIO ========== -->
     <form id="formCrud">
         <input type="hidden" id="idEditando">
@@ -75,6 +91,22 @@
         const db = getFirestore(app);
         const coleccion = collection(db, "mibd");
 
+        /* -------- FUNCIÓN DEL TOAST -------- */
+        function mostrarToast(mensaje, tipo = "success") {
+            const toast = document.getElementById("toast");
+
+            toast.style.background = tipo === "error" ? "#E53935" : "#4CAF50";
+            toast.textContent = mensaje;
+            toast.style.display = "block";
+            toast.style.opacity = "1";
+
+            setTimeout(() => {
+                toast.style.transition = "opacity 0.5s";
+                toast.style.opacity = "0";
+                setTimeout(() => toast.style.display = "none", 500);
+            }, 2500);
+        }
+
         let tabla;
 
         $(document).ready(() => {
@@ -131,8 +163,10 @@
 
                 if (id) {
                     await updateDoc(doc(db, "mibd", id), data);
+                    mostrarToast("Juego actualizado correctamente");
                 } else {
                     await addDoc(coleccion, data);
+                    mostrarToast("Juego agregado correctamente");
                 }
 
                 form.reset();
@@ -180,6 +214,7 @@
                 if (confirm("¿Seguro que deseas eliminar este juego?")) {
                     await deleteDoc(doc(db, "mibd", id));
                     cargarDatos();
+                    mostrarToast("Juego eliminado correctamente", "success");
                 }
             });
 
