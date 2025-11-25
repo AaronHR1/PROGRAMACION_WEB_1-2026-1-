@@ -1,14 +1,60 @@
-<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>Biblioteca de Videojuegos</title>
+
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+  <style>
+    /* ===== MODAL ===== */
+    #modalFondo {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0; top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+    }
+
+    #modalContenido {
+      background: white;
+      width: 600px;
+      padding: 20px;
+      border-radius: 10px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    #modalContenido img {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    #btnCerrarModal {
+      float: right;
+      cursor: pointer;
+      background: red;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .modalTitulo {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 
 <body>
-  <h2>Los mejores videojuegos</h2>
-
+  <h2>Biblioteca de videojuegos</h2>
+  
   <table id="miTabla" class="display">
     <thead>
       <tr>
@@ -22,17 +68,38 @@
     <tbody></tbody>
   </table>
 
-  
+  <!-- ===== MODAL POPUP ===== -->
+  <div id="modalFondo">
+    <div id="modalContenido">
+      <button id="btnCerrarModal">Cerrar</button>
+      <img id="modalImg">
+      <div class="modalTitulo" id="modalNombre"></div>
+
+      <p><b>Estudio:</b> <span id="modalEstudio"></span></p>
+      <p><b>Género:</b> <span id="modalGenero"></span></p>
+      <p><b>Año:</b> <span id="modalAnio"></span></p>
+      <p><b>Puntuación:</b> <span id="modalPuntuacion"></span>/10</p>
+      <p><b>Plataformas:</b> <span id="modalPlataformas"></span></p>
+      <p><b>Resumen:</b></p>
+      <p id="modalResumen"></p>
+
+      <a id="modalGameplay" target="_blank">
+        <button style="margin-top: 10px;">Ver Gameplay</button>
+      </a>
+    </div>
+  </div>
+
+
+  <!-- ===== LIBRERÍAS ===== -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-  
+  <!-- ===== FIREBASE + TABLA ===== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getFirestore, collection, getDocs }
       from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    
     const firebaseConfig = {
       apiKey: "AIzaSyDL6rQZ26lv8-HEXlVJaW8Xwc42FCKxgkA",
       authDomain: "bibliotecavideojuegos-9ff72.firebaseapp.com",
@@ -45,15 +112,12 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
-   
     const coleccion = collection(db, "mibd");
 
     let tabla;
 
     $(document).ready(() => {
 
-      
       tabla = $('#miTabla').DataTable({
         data: [],
         columns: [
@@ -69,30 +133,54 @@
               </button>
             `
           }
-        ],
-        language: {
-          url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
-        }
+        ]
       });
 
-      
       cargarDatos();
 
       async function cargarDatos() {
         const snapshot = await getDocs(coleccion);
-
         const datos = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
 
         tabla.clear();
-        tabla.rows.add(datos);
-        tabla.draw();
+        tabla.rows.add(datos).draw();
       }
+
+      // ===== EVENTO CLICK "Más información" =====
+      $('#miTabla tbody').on("click", ".btnMasInfo", function () {
+        const data = tabla.row($(this).parents("tr")).data();
+        mostrarModal(data);
+      });
+
     });
 
-  </script>
 
+    // ===== FUNCIÓN PARA MOSTRAR MODAL =====
+    function mostrarModal(data) {
+      document.getElementById("modalImg").src = data.imagen;
+      document.getElementById("modalNombre").innerText = data.nombre;
+      document.getElementById("modalEstudio").innerText = data.estudio;
+      document.getElementById("modalGenero").innerText = data.genero;
+      document.getElementById("modalAnio").innerText = data.anio;
+      document.getElementById("modalPuntuacion").innerText = data.puntuacion;
+      document.getElementById("modalPlataformas").innerText = data.plataformas.join(", ");
+      document.getElementById("modalResumen").innerText = data.resumen;
+      document.getElementById("modalGameplay").href = data.gameplay;
+
+      document.getElementById("modalFondo").style.display = "flex";
+    }
+
+    // ===== CERRAR MODAL =====
+    document.getElementById("btnCerrarModal").onclick = () => {
+      document.getElementById("modalFondo").style.display = "none";
+    };
+  </script>
+  <button onclick="window.location.href='crud.html'" 
+        style="margin-top:20px; padding:10px 20px; font-size:16px;">
+  
+  </button>
 </body>
 </html>
