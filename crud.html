@@ -1,11 +1,194 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>CRUD Videojuegos</title>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 </head>
+
 <body>
-    <h1> aqui esta el crud</h1>
+    <h1>CRUD de Videojuegos</h1>
+
+    <!-- ========== FORMULARIO ========== -->
+    <form id="formCrud">
+        <input type="hidden" id="idEditando">
+
+        <p>Nombre: <input type="text" id="nombre" required></p>
+        <p>Estudio: <input type="text" id="estudio" required></p>
+        <p>Género: <input type="text" id="genero" required></p>
+        <p>Año: <input type="number" id="anio" required></p>
+        <p>Puntuación: <input type="number" id="puntuacion" required></p>
+        <p>Plataformas (separadas por coma):  
+            <input type="text" id="plataformas" required>
+        </p>
+        <p>Imagen (URL): <input type="text" id="imagen" required></p>
+        <p>Gameplay (URL): <input type="text" id="gameplay" required></p>
+
+        <p>Resumen:</p>
+        <textarea id="resumen" rows="3" required></textarea>
+
+        <button type="submit" id="btnGuardar">Agregar</button>
+        <button type="button" id="btnCancelar" style="display:none;">Cancelar</button>
+    </form>
+
+    <hr>
+
+    <!-- ========== TABLA CRUD ========== -->
+    <table id="tablaCrud" class="display">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Estudio</th>
+                <th>Género</th>
+                <th>Año</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+
+    <!-- ========== LIBRERÍAS ========== -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <!-- ========== FIREBASE + CRUD ========== -->
+    <script type="module">
+
+        /* -------- FIREBASE -------- */
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc }
+            from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDL6rQZ26lv8-HEXlVJaW8Xwc42FCKxgkA",
+            authDomain: "bibliotecavideojuegos-9ff72.firebaseapp.com",
+            projectId: "bibliotecavideojuegos-9ff72",
+            storageBucket: "bibliotecavideojuegos-9ff72.firebasestorage.app",
+            messagingSenderId: "405804750018",
+            appId: "1:405804750018:web:2af7fea6bd66e3b54b175b",
+            measurementId: "G-333PHWPRED"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const coleccion = collection(db, "mibd");
+
+        let tabla;
+
+        $(document).ready(() => {
+            tabla = $('#tablaCrud').DataTable({
+                data: [],
+                columns: [
+                    { data: "nombre" },
+                    { data: "estudio" },
+                    { data: "genero" },
+                    { data: "anio" },
+                    {
+                        data: null,
+                        render: row => `
+                            <button class="btnEditar" data-id="${row.id}">Editar</button>
+                            <button class="btnEliminar" data-id="${row.id}">Eliminar</button>
+                        `
+                    }
+                ]
+            });
+
+            cargarDatos();
+
+            async function cargarDatos() {
+                const snapshot = await getDocs(coleccion);
+                const datos = snapshot.docs.map(docSnap => ({
+                    id: docSnap.id,
+                    ...docSnap.data()
+                }));
+
+                tabla.clear();
+                tabla.rows.add(datos).draw();
+            }
+
+
+            /* -------- AGREGAR / EDITAR -------- */
+            const form = document.getElementById("formCrud");
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const data = {
+                    nombre: nombre.value,
+                    estudio: estudio.value,
+                    genero: genero.value,
+                    anio: Number(anio.value),
+                    puntuacion: Number(puntuacion.value),
+                    plataformas: plataformas.value.split(",").map(x => x.trim()),
+                    imagen: imagen.value,
+                    gameplay: gameplay.value,
+                    resumen: resumen.value
+                };
+
+                const id = idEditando.value;
+
+                if (id) {
+                    await updateDoc(doc(db, "mibd", id), data);
+                } else {
+                    await addDoc(coleccion, data);
+                }
+
+                form.reset();
+                idEditando.value = "";
+                btnGuardar.textContent = "Agregar";
+                btnCancelar.style.display = "none";
+
+                cargarDatos();
+            });
+
+
+            /* -------- LLENAR FORMULARIO PARA EDITAR -------- */
+            $('#tablaCrud tbody').on("click", ".btnEditar", function () {
+                const data = tabla.row($(this).parents("tr")).data();
+
+                idEditando.value = data.id;
+                nombre.value = data.nombre;
+                estudio.value = data.estudio;
+                genero.value = data.genero;
+                anio.value = data.anio;
+                puntuacion.value = data.puntuacion;
+                plataformas.value = data.plataformas.join(", ");
+                imagen.value = data.imagen;
+                gameplay.value = data.gameplay;
+                resumen.value = data.resumen;
+
+                btnGuardar.textContent = "Actualizar";
+                btnCancelar.style.display = "inline-block";
+            });
+
+
+            /* -------- CANCELAR EDICIÓN -------- */
+            btnCancelar.onclick = () => {
+                form.reset();
+                idEditando.value = "";
+                btnGuardar.textContent = "Agregar";
+                btnCancelar.style.display = "none";
+            };
+
+
+            /* -------- ELIMINAR -------- */
+            $('#tablaCrud tbody').on("click", ".btnEliminar", async function () {
+                const id = $(this).data("id");
+
+                if (confirm("¿Seguro que deseas eliminar este juego?")) {
+                    await deleteDoc(doc(db, "mibd", id));
+                    cargarDatos();
+                }
+            });
+
+        });
+
+    </script>
+    <button onclick="window.location.href='index.html'" 
+        style="margin-top:20px; padding:10px 20px; font-size:16px;">
+        VOLVER A LA BIBLIOTECA
+    </button>
 </body>
 </html>
